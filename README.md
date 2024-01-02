@@ -1,5 +1,5 @@
 # BiS (Bcftools variant identification using Snakemake)
-Fully automated RNAseq pipeline for identifying SNPs from RNAseq data using VarScan2.  
+Fully automated RNAseq pipeline for identifying SNPs from DNAseq data using BWA and BCFtools.
 The pipeline is also available as a Docker image, to run all steps automatically in a few steps:
 
 **1. Build Docker image**  
