@@ -1,0 +1,116 @@
+import os
+import re
+import subprocess
+import itertools
+
+include: "snakemake_utils.smk"
+
+#=============================================================== Pipeline Configuration ======================================================================#
+
+if is_docker():
+    configfile: str(find_repository_name(start_dir=".")) + "/config/config.yaml"
+else:
+    configfile: str(find_workflow_path(dir=".")) + "config/config.yaml"
+
+## Wildcards
+read_directory_path = config['read_dir']
+
+# Create a set of sample names by combining the directory name and file prefixes
+samples = sorted({os.path.basename(read_directory_path) + "/" + f[:-8] for f in os.listdir(read_directory_path) if f.endswith(".fastq")})
+
+groups = list(set((re.sub(".*/", "", s) for s in samples)))
+
+#==================================================================== RULE ALL ============================================================================#
+
+rule all:
+    input: "all_samples.vcf",
+     	   "PCA.svg"
+
+#=============================================================== FASTQC AND TRIMMING =======================================================================#
+
+rule fastqc:
+    input:
+        r1="{sample}_1.fastq.gz",
+        r2="{sample}_2.fastq.gz"
+
+    output: "fastqc/{sample}_fastqc/fastqc_report.html"
+    threads: 1
+    conda: "envs/dnaseq.yaml"
+    shell:
+        """ mkdir -p fastqc && 
+	    fastqc {input.r1} -t {threads} && 
+            fastqc {input.r2} -t {threads} """
+
+
+rule download_trimmomatic_adapters:
+    output: "TruSeq3-PE.fa"
+    shell: """ wget -O TruSeq3-PE.fa 'https://raw.githubusercontent.com/usadellab/Trimmomatic/main/adapters/TruSeq3-PE.fa' """
+
+
+rule trim_reads:
+    input:
+        adapters="TruSeq3-PE.fa",
+        r1="{sample}_1.fastq.gz",
+        r2="{sample}_2.fastq.gz"
+    output:
+        r1_trimmed="{sample}_1.trimmed.fastq.gz",
+        r2_trimmed="{sample}_2.trimmed.fastq.gz",
+        r1_garbage=temp("{sample}_1.garbage.fastq.gz"),
+        r2_garbage=temp("{sample}_2.garbage.fastq.gz")
+    threads: config['trimmomatic_threads']
+    conda: "envs/dnaseq.yaml"
+    message: "Adapter-trimming reads"
+    shell:
+        """ trimmomatic PE -threads {threads} {input.r1} {input.r2} {output.r1_trimmed} {output.r1_garbage} {output.r2_trimmed} {output.r2_garbage} ILLUMINACLIP:{input.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:50 """
+
+
+rule download_genome:
+    output: "genome.fasta"
+    params: genome_url=config["genome_url"]
+    shell: """ wget -O 'genome.fasta.gz' {params.genome_url} && gunzip 'genome.fasta.gz' """
+    
+
+#==================================================================== MAPPING =============================================================================#
+
+rule build_genome_index:
+    input: genome = rule.download_genome.output
+    output: "index_chkp"
+    conda: "envs/dnaseq.yaml"
+    threads: config['bwa_index_threads']
+    message: "Building genome index with bwa index"
+    params: algorithm = config['bwa_index_algorithm']
+    shell:
+        """ bwa index -a {params.algorithm} -@ {threads} {input.genome} && touch index_chkp """
+
+rule mapping_and_sorting:
+    input:
+        ch="index_chkp",
+        r1="{sample}_1.fastq",
+        r2="{sample}_2.fastq",
+    output: bam="{sample}.bam"
+    conda: "envs/dnaseq.yaml"
+    message: "Mapping reads to genome and convert to sorted BAM"
+    threads: sort=config['samtools_sort_threads'],
+    	     index=config['samtools_index_threads']
+    params: samtools_mem_alloc = config['samtools_mem_alloc'],
+    	    genome = rule.download_genome.output
+    shell:
+        """ bwa mem {params.genome} {input.r1} {input.r2} | samtools view -b - | samtools sort -m {params.samtools_mem_alloc} --threads {threads.sort} -o {output.bam} && samtools index -@ {threads.index} {output.bam} """
+
+
+rule pileup_and_vcf:
+     input:
+	bams = expand("{sample}.bam", sample = samples ),
+	genome = rule.download_genome.output
+     	    
+     output: "all_samples.vcf"
+     conda: "envs/dnaseq.yaml"
+     message: "Generating pileup file and converting bcf to vcf"
+     shell: """ bcftools mpileup -Ou -f {input.genome} {input.bams} | bcftools call -Ou -mv -o all_samples.vcf """
+
+
+rule pca:
+     input: vcf = "all_samples.vcf"
+     output: "PCA.svg"
+     shell: """ Rscript scripts/pca.R {input.vcf} """
+	

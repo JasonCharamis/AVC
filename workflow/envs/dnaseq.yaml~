@@ -1,0 +1,14 @@
+name: varscan
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - fastqc
+    - trimmomatic
+    - bwa-mem2
+    - samtools
+    - bcftools
+    
+env:
+  PATH:
+    - scripts/

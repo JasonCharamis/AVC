@@ -1,0 +1,21 @@
+name: varscan
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - fastqc
+    - trimmomatic
+    - bwa-mem2
+    - samtools
+    - bcftools
+    - r-ggfortify
+    - r-ggrepel
+    - r-ggthemes
+    - r-ggplot2
+    - r-ggpubr
+    - r-vcfR
+    - r-vegan
+    
+env:
+  PATH:
+    - scripts/
