@@ -1,0 +1,3 @@
+FileNotFoundError in file /home/jason/bin/BiS/workflow/Snakefile, line 19:
+[Errno 2] No such file or directory: 'data'
+  File "/home/jason/bin/BiS/workflow/Snakefile", line 19, in <module>

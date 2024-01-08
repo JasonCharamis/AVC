@@ -1,0 +1,3 @@
+KeyError in file /home/jason/bin/BiS/workflow/Snakefile, line 79:
+'bwa-mem2_index_threads'
+  File "/home/jason/bin/BiS/workflow/Snakefile", line 79, in <module>

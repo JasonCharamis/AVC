@@ -1,0 +1,4 @@
+The flag 'directory' used in rule fastqc is only valid for outputs, not inputs.
+KeyError in file /home/jason/bin/BiS/workflow/Snakefile, line 71:
+'trimmomatic_threads'
+  File "/home/jason/bin/BiS/workflow/Snakefile", line 71, in <module>

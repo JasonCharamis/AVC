@@ -1,4 +1,16 @@
-read_dir: "example"
-bwa_index_algorithm: "bwtsw"
+
+## Data and Genome URLs ##
+data_url: "https://ndownloader.figshare.com/files/14418248"
+read_dir: "data"
 genome_url: "ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/017/985/GCA_000017985.1_ASM1798v1/GCA_000017985.1_ASM1798v1_genomic.fna.gz"
+
+## Algorithm mode ##
+bwa_index_algorithm: "bwtsw"
+
+## Computing Resources ##
+trimmomatic_threads: 12
+bwa_index_threads: 8
+samtools_sthreads: 5
+samtools_index_threads: 5
+
 samtools_mem_alloc: "32G"

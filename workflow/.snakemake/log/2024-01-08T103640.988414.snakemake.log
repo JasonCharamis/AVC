@@ -1,0 +1,2 @@
+SyntaxError in file /home/jason/bin/BiS/workflow/Snakefile, line 103:
+Unexpected keyword bams in rule definition (Snakefile, line 103)

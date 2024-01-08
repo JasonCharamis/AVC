@@ -1,0 +1,3 @@
+KeyError in file /home/jason/bin/BiS/workflow/Snakefile, line 70:
+'trimmomatic_threads'
+  File "/home/jason/bin/BiS/workflow/Snakefile", line 70, in <module>

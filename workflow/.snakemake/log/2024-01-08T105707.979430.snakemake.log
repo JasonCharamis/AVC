@@ -1,0 +1,3 @@
+NameError in file /home/jason/bin/BiS/workflow/Snakefile, line 85:
+name 'rule' is not defined
+  File "/home/jason/bin/BiS/workflow/Snakefile", line 85, in <module>

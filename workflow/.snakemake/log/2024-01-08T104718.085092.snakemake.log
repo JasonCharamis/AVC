@@ -1,0 +1,2 @@
+SyntaxError in file /home/jason/bin/BiS/workflow/Snakefile, line 38:
+Unexpected keyword data_files in rule definition (Snakefile, line 38)
