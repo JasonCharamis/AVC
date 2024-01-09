@@ -123,7 +123,6 @@ rule mapping_and_sorting:
 		   O={output.bam} \
 		   SORT_ORDER=coordinate \
 		   CREATE_INDEX=true \
-		   TMP_DIR={temp} \
 		   VALIDATION_STRINGENCY=LENIENT && \
 		   
             rm /tmp/{wildcards.sample}.temp.bam """
