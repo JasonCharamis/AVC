@@ -141,4 +141,5 @@ rule pileup_and_vcf:
 rule pca:
      input: vcf = "all_samples.vcf"
      output: "PCA.svg"
-     shell: """ Rscript scripts/pca.R {input.vcf} """
+     conda: "envs/dnaseq.yaml"
+     script: "scripts/pca.R"

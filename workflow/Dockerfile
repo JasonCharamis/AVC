@@ -44,5 +44,3 @@ RUN git clone https://github.com/JasonCharamis/BiS.git
 ENV PATH="~/.local:$PATH"
 ENV PATH="BiS:$PATH"
 ENV PATH="BiS/workflow/scripts:$PATH"
-ENV PATH="/conda-envs/varscan/bin:$PATH"
-ENV PATH="/usr/lib/R/bin:$PATH"
