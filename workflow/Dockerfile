@@ -24,20 +24,20 @@ RUN apt-get update && \
 ## Load mambaforge image
 FROM condaforge/mambaforge:latest
 
-RUN mkdir -p /conda-envs/rnaseq
-COPY envs/dnaseq.yaml /conda-envs/rnaseq/environment.yaml
+RUN mkdir -p /conda-envs/dnaseq
+COPY envs/dnaseq.yaml /conda-envs/dnaseq/environment.yaml
 
 ## Install required packages through conda
-RUN mamba env create --prefix /conda-envs/dnaseq --file /conda-envs/rnaseq/environment.yaml && \
+RUN mamba env create --prefix /conda-envs/dnaseq --file /conda-envs/dnaseq/environment.yaml && \
     mamba clean --all -y
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y build-essential curl
 
 ## Install Python packages, including Snakemake, through pip
-RUN /conda-envs/rnaseq/bin/pip3 install wheel && \
-    /conda-envs/rnaseq/bin/pip3 install datrie && \
-    /conda-envs/rnaseq/bin/pip3 install snakemake
+RUN /conda-envs/dnaseq/bin/pip3 install wheel && \
+    /conda-envs/dnaseq/bin/pip3 install datrie && \
+    /conda-envs/dnaseq/bin/pip3 install snakemake
 
 RUN git clone https://github.com/JasonCharamis/BiS.git
   
