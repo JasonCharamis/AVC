@@ -142,4 +142,4 @@ rule pca:
      input: vcf = "all_samples.vcf"
      output: "PCA.svg"
      conda: "envs/dnaseq.yaml"
-     script: "scripts/pca.R"
+     shell: "r-script scripts/pca.R {input.vcf}"
