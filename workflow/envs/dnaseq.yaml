@@ -18,3 +18,6 @@ dependencies:
     - r-ggpubr
     - r-vcfR
     - r-vegan
+    - r-tidyverse
+    - bioconductor-edger
+    - bioconductor-limma
