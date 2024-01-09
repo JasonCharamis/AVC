@@ -6,7 +6,7 @@ dependencies:
     - fastqc
     - trimmomatic
     - bwa-mem2
-    - samtools
+    - picard
     - bcftools
     - r-ggfortify
     - r-ggrepel

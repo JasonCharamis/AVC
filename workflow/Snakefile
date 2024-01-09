@@ -112,12 +112,20 @@ rule mapping_and_sorting:
         bam="{sample}.bam"
 
     shell:
-        """
-        bwa-mem2 mem {params.genome} {input.r1} {input.r2} | \
-        samtools view -b - | \
-        samtools sort -m {params.samtools_mem_alloc} --threads {params.samtools_sthreads} -o {output.bam} && \
-        samtools index -@ {params.index_sthreads} {output.bam}
-        """
+        """ bwa-mem2 mem {params.genome} {input.r1} {input.r2} | \
+
+	    picard SamFormatConverter \
+            	   I=/dev/stdin \
+            	   O=/dev/stdout \
+		   | \
+		   
+            picard SortSam \
+            	   I=/dev/stdin \
+		   O={output.bam} \
+		   SORT_ORDER=coordinate \
+		   CREATE_INDEX=true \
+		   TMP_DIR={temp} \
+		   VALIDATION_STRINGENCY=LENIENT """      
 
 rule pileup_and_vcf:
      input:
