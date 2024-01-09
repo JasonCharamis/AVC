@@ -116,16 +116,17 @@ rule mapping_and_sorting:
 
 	    picard SamFormatConverter \
             	   I=/dev/stdin \
-            	   O=/dev/stdout \
-		   | \
+		   O=/tmp/{wildcards.sample}.temp.bam && \
 		   
             picard SortSam \
-            	   I=/dev/stdin \
+	    	   I=/tmp/{wildcards.sample}.temp.bam \
 		   O={output.bam} \
 		   SORT_ORDER=coordinate \
 		   CREATE_INDEX=true \
 		   TMP_DIR={temp} \
-		   VALIDATION_STRINGENCY=LENIENT """      
+		   VALIDATION_STRINGENCY=LENIENT && \
+		   
+            rm /tmp/{wildcards.sample}.temp.bam """
 
 rule pileup_and_vcf:
      input:
