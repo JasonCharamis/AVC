@@ -35,14 +35,12 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y build-essential curl
 
 ## Install Python packages, including Snakemake, through pip
-RUN /conda-envs/dnaseq/bin/pip3 install wheel && \
-    /conda-envs/dnaseq/bin/pip3 install datrie && \
-    /conda-envs/dnaseq/bin/pip3 install snakemake
+RUN pip3 install wheel && \
+    pip3 install datrie && \
+    pip3 install snakemake
 
 RUN git clone https://github.com/JasonCharamis/BiS.git
   
-RUN mv *.pl BiS/workflow/scripts
-
 ENV PATH="~/.local:$PATH"
 ENV PATH="BiS:$PATH"
 ENV PATH="BiS/workflow/scripts:$PATH"

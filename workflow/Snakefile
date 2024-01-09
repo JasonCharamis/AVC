@@ -11,18 +11,22 @@ rule all:
 
 #=============================================================== DOWNLOAD DATA =======================================================================#
 
+import os
+import re
+import subprocess
+from glob import glob
+
 def download_data(data_url):
     subprocess.run(["wget", "-O", "data.tar.gz", data_url])
     subprocess.run(["gunzip", "data.tar.gz"])
     subprocess.run(["mkdir", "data"])
     subprocess.run(["tar", "-xf", "data.tar", "--strip-components=1", "-C", "./data"])
 
-if not os.path.exists("data") and os.path.isdir("data"):
-    download_data(config["data_url"])
-
 def rename_data(files):
-    subprocess.run(["rename", "s/.trim.sub//", files])
-
+    for file in files:
+        base_name = os.path.basename(file)
+        new_name = os.path.join(os.path.dirname(file), base_name.replace('.trim.sub', ''))
+        os.rename(file, new_name)
 
 def check_filenames(directory_path, regex_pattern):
     try:
@@ -30,9 +34,8 @@ def check_filenames(directory_path, regex_pattern):
             print(f"The directory {directory_path} does not exist.")
             return
 
-        filenames = os.listdir(directory_path)
         pattern = re.compile(regex_pattern)
-        matching_filenames = [filename for filename in filenames if re.search(pattern, filename)]
+        matching_filenames = [filename for filename in glob(os.path.join(directory_path, "*.fastq")) if re.search(pattern, filename)]
 
         if matching_filenames:
             return matching_filenames
@@ -40,13 +43,19 @@ def check_filenames(directory_path, regex_pattern):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+data_url = config["data_url"]
+data_dir = "data"
 
-if check_filenames("data", "trim"):
-    rename_data(files="./data/*.fastq")
+if not os.path.exists(data_dir) and not os.path.isdir(data_dir):
+    download_data(data_url)
 
-samples = [ str(file) for file in sorted([f[:-8] for f in os.listdir("data") if f.endswith(".fastq")]) ]
+matching_files = check_filenames(data_dir, "trim")
 
-print ( samples ) 
+if matching_files:
+    rename_data(files=matching_files)
+
+samples = [str(file) for file in sorted([f[:-8] for f in os.listdir(data_dir) if f.endswith(".fastq")])]
+
 
 #=============================================================== FASTQC AND TRIMMING =======================================================================#
 
@@ -78,9 +87,8 @@ rule build_genome_index:
     conda: "envs/dnaseq.yaml"
     threads: config['bwa_index_threads']
     message: "Building genome index with bwa-mem2 index"
-    params: algorithm = config['bwa_index_algorithm']
     shell:
-        """ bwa-mem2 index -a {params.algorithm} -@ {threads} {input.genome} && touch index_chkp """
+        """ bwa-mem2 index -p {input.genome} {input.genome} -@ {threads} && touch index_chkp """
 
 rule mapping_and_sorting:
     input:
