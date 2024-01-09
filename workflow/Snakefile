@@ -88,7 +88,7 @@ rule build_genome_index:
     threads: config['bwa_index_threads']
     message: "Building genome index with bwa-mem2 index"
     shell:
-        """ bwa-mem2 index -p {input.genome} {input.genome} -@ {threads} && touch index_chkp """
+        """ bwa-mem2 index -p {input.genome} {input.genome} && touch index_chkp """
 
 rule mapping_and_sorting:
     input:
