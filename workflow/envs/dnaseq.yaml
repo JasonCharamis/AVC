@@ -1,4 +1,4 @@
-name: varscan
+name: dnaseq
 channels:
     - conda-forge
     - bioconda
