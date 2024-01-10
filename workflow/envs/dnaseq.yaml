@@ -8,9 +8,9 @@ dependencies:
     - bwa-mem2
     - picard
     - bcftools
-    - r=4.3
-    - r-base
     - r-essentials
+    - r-renv=0.14.*
+    - r-base
     - r-ggfortify
     - r-ggrepel
     - r-ggthemes
