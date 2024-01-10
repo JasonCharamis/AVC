@@ -26,7 +26,7 @@ FROM condaforge/mambaforge:latest
 
 RUN mkdir -p /conda-envs/dnaseq
 COPY envs/dnaseq.yaml /conda-envs/dnaseq/environment.yaml
-x
+
 ## Install required packages through conda
 RUN mamba env create --prefix /conda-envs/dnaseq --file /conda-envs/dnaseq/environment.yaml && \
     mamba clean --all -y
