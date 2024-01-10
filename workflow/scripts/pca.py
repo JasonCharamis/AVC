@@ -1,5 +1,5 @@
 import argparse
-import vcf
+import pyvcf
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
