@@ -7,9 +7,9 @@ import itertools
 
 rule all:
     input: "all_samples.vcf",
-     	   "PCA.svg"
+     	   "PCA.pdf"
 
-#=============================================================== DOWNLOAD DATA =======================================================================#
+#=============================================================== DOWNLOAD DATA AND GENOME =======================================================================#
 
 import os
 import re
@@ -57,6 +57,12 @@ if matching_files:
 samples = [str(file) for file in sorted([f[:-8] for f in os.listdir(data_dir) if f.endswith(".fastq")])]
 
 
+rule download_genome:
+    output: "genome.fasta"
+    params: genome_url=config["genome_url"]
+    shell: """ wget -O 'genome.fasta.gz' {params.genome_url} && gunzip 'genome.fasta.gz' """
+
+
 #=============================================================== FASTQC AND TRIMMING =======================================================================#
 
 rule fastqc:
@@ -73,11 +79,6 @@ rule fastqc:
             fastqc {input.r2} -t {threads} """
 
 
-rule download_genome:
-    output: "genome.fasta"
-    params: genome_url=config["genome_url"]
-    shell: """ wget -O 'genome.fasta.gz' {params.genome_url} && gunzip 'genome.fasta.gz' """
-
 
 #==================================================================== MAPPING =============================================================================#
 
@@ -85,10 +86,10 @@ rule build_genome_index:
     input: genome = rules.download_genome.output
     output: "index_chkp"
     conda: "envs/dnaseq.yaml"
-    threads: config['bwa_index_threads']
     message: "Building genome index with bwa-mem2 index"
     shell:
         """ bwa-mem2 index -p {input.genome} {input.genome} && touch index_chkp """
+
 
 rule mapping_and_sorting:
     input:
@@ -103,9 +104,6 @@ rule mapping_and_sorting:
         "Mapping reads to the genome and converting to a sorted BAM file"
 
     params:
-        samtools_sthreads=config['samtools_sthreads'],
-        index_sthreads=config['samtools_index_threads'],
-        samtools_mem_alloc=config['samtools_mem_alloc'],
         genome=rules.download_genome.output
 
     output:
@@ -127,6 +125,7 @@ rule mapping_and_sorting:
 		   
             rm /tmp/{wildcards.sample}.temp.bam """
 
+
 rule pileup_and_vcf:
      input:
          bams = expand ( "{sample}.bam", sample = samples ),
@@ -140,6 +139,6 @@ rule pileup_and_vcf:
 
 rule pca:
      input: vcf = "all_samples.vcf"
-     output: "PCA.svg"
+     output: "PCA.pdf"
      conda: "envs/dnaseq.yaml"
-     shell: "r-script scripts/pca.R {input.vcf}"
+     shell: "Rscript scripts/pca.R {input.vcf}"
