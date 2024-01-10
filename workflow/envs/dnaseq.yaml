@@ -8,7 +8,6 @@ dependencies:
     - bwa-mem2
     - picard
     - bcftools
-    - python=3.8
     - argparse
     - biopython
     - matplotlib
