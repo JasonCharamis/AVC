@@ -6,9 +6,8 @@ import itertools
 #==================================================================== RULE ALL ============================================================================#
 
 rule all:
-    input: "all_samples.vcf",
-    	   "pca_plot.png"
-
+    input: "all_samples.vcf"
+    
 #=============================================================== DOWNLOAD DATA AND GENOME =======================================================================#
 
 import os
@@ -136,9 +135,3 @@ rule pileup_and_vcf:
      message: "Generating pileup file and converting bcf to vcf"
      shell: """ bcftools mpileup -Ou -f {input.genome} {input.bams} | bcftools call -Ou -mv -o all_samples.vcf """
      
-
-rule pca:
-     input: vcf = "all_samples.vcf"
-     output: "pca_plot.png"
-     conda: "envs/dnaseq.yaml"
-     shell: "python scripts/pca.py -i {input.vcf}"
