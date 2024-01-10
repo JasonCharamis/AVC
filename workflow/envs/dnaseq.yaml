@@ -8,16 +8,11 @@ dependencies:
     - bwa-mem2
     - picard
     - bcftools
-    - r-essentials
-    - r-renv=0.14.*
-    - r-base
-    - r-ggfortify
-    - r-ggrepel
-    - r-ggthemes
-    - r-ggplot2
-    - r-ggpubr
-    - r-vcfR
-    - r-vegan
-    - r-tidyverse
-    - bioconductor-edger
-    - bioconductor-limma
+    - python=3.8
+    - argparse
+    - biopython
+    - matplotlib
+    - pandas
+    - scikit-learn
+    - seaborn
+    - vcf
