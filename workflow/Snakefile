@@ -10,11 +10,6 @@ rule all:
     
 #=============================================================== DOWNLOAD DATA AND GENOME =======================================================================#
 
-import os
-import re
-import subprocess
-from glob import glob
-
 def download_data(data_url):
     subprocess.run(["wget", "-O", "data.tar.gz", data_url])
     subprocess.run(["gunzip", "data.tar.gz"])
