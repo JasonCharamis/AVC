@@ -15,4 +15,4 @@ dependencies:
     - pandas
     - scikit-learn
     - seaborn
-    - vcf
+    - pyvcf
