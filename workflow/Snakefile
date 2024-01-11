@@ -2,7 +2,7 @@ import os
 import re
 import subprocess
 import itertools
-import glob
+from glob import glob
 
 #==================================================================== RULE ALL ============================================================================#
 
