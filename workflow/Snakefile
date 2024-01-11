@@ -129,7 +129,5 @@ rule pileup_and_vcf:
      output: "all_samples.vcf"
      conda: "envs/dnaseq.yaml"
      message: "Generating pileup file and converting bcf to vcf"
-     shell: """ bcftools mpileup -Ou -f {input.genome} {input.bams} | \ 
-                
-                bcftools call -Ou -mv -o all_samples.vcf """
+     shell: """ bcftools mpileup -Ou -f {input.genome} {input.bams} | bcftools call -Ou -mv -o all_samples.vcf """
      
