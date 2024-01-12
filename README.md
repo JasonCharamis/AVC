@@ -1,5 +1,5 @@
 # AVC (Automated Variant Calling using Snakemake)
-Fully automated pipeline for identifying SNPs from DNAseq data using BWA and BCFtools.
+Fully automated Snakemake pipeline for identifying SNPs from DNAseq data using BWA and BCFtools.
 The pipeline is also available as a Docker image, to run all steps automatically in a few steps:
 
 **1. Build Docker image**  
