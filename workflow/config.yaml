@@ -1,0 +1,4 @@
+# Data definitions
+data_url: https://ndownloader.figshare.com/files/14418248
+genome_url: ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/017/985/GCA_000017985.1_ASM1798v1/GCA_000017985.1_ASM1798v1_genomic.fna.gz
+threads: 2

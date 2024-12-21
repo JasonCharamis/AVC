@@ -4,14 +4,6 @@ channels:
     - bioconda
 dependencies:
     - fastqc
-    - trimmomatic
     - bwa-mem2
-    - picard
+    - samtools
     - bcftools
-    - argparse
-    - biopython
-    - matplotlib
-    - pandas
-    - scikit-learn
-    - seaborn
-    - pyvcf

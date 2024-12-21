@@ -1,0 +1,17 @@
+name: dnaseq
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - fastqc
+    - trimmomatic
+    - bwa-mem2
+    - picard
+    - bcftools
+    - argparse
+    - biopython
+    - matplotlib
+    - pandas
+    - scikit-learn
+    - seaborn
+    - pyvcf
