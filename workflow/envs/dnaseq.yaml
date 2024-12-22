@@ -7,3 +7,7 @@ dependencies:
     - bwa-mem2
     - samtools
     - bcftools
+    - argparse
+    - numpy
+    - scikit-learn
+    - matplotlib

@@ -16,6 +16,7 @@ show_help() {
 get_yaml_value() {
     local key=$1
     local default=$2
+
     # Isolate value per key and remove any leading and trailing/or whitespace characters (spaces, tabs etc)
     local value=$(grep "^${key}:" "$yaml_file" | cut -d':' -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
     echo "${value:-$default}"
@@ -54,7 +55,7 @@ download_data() {
     rm data.tar
 }
 
-# Function to download and prepare genome
+# Download and prepare genome for mapping
 download_genome() {
     local genome_url=$1
     
@@ -65,14 +66,14 @@ download_genome() {
         exit 127
     fi
 
-    wget -O genome.fasta.gz "$genome_url"
+    wget -O genome.fasta.gz "${genome_url}" 
     gunzip genome.fasta.gz
 }
 
-# Function to rename fastq files and keep only relevant information
+# Rename fastq files and keep only relevant information
 rename_data() {
     local directory=$1
-    echo "Renaming files..."
+    echo "Renaming files in ${directory}..."
 
     if [[ -n "$(ls -A $directory/*.fastq)" ]]; then        
         for file in $(ls -1 $directory/*.fastq); do
@@ -82,12 +83,12 @@ rename_data() {
             fi
         done
     else 
-        echo "No fastq files found in $directory".
+        echo "No fastq files found in ${directory}".
         exit 1
     fi
 }
 
-# Function to run quality assessment using FastQC
+# Run read quality assessment using FastQC
 run_fastqc() {
     local sample=$1
         
@@ -102,7 +103,7 @@ run_fastqc() {
     fastqc "data/${sample}_2.fastq"
 }
 
-# Function to build genome index using bwa-mem2
+# Build genome index using bwa-mem2
 build_genome_index() {
     echo "Building genome index..."
 
@@ -114,12 +115,12 @@ build_genome_index() {
     bwa-mem2 index -p genome.fasta genome.fasta
 }
 
-# Function to perform mapping and sorting using bwa-mem2 and samtools
-mapping_and_sorting() {
+# Mapping reads to the genome and sort them using bwa-mem2 and samtools
+map_and_sort() {
     local sample=$1
     local threads=${2:-1} # threads as an optional argument
 
-    echo "Mapping and sorting sample $sample..."
+    echo "Mapping and sorting sample ${sample}..."
 
     # Create temporary directory
     local temp_dir=$(mktemp -d)
@@ -140,21 +141,40 @@ mapping_and_sorting() {
     | samtools sort -@ ${threads} -m 2G -o "${sample}.sorted.bam"
 }
 
-# Function to generate VCF using bcftools
+# Generate VCF using bcftools with input as an array to handle multiple samples simultaneously
 generate_vcf() {
-    local bam_files=$1
-    local threads=${2:-1} # threads as an optional argument
-    
-    echo "Generating VCF file..."
+    local -a bam_files=("${@:1:$#-2}")  # Get all args except last two
+    local genome="${@: -2:1}"           # Get second-to-last argument as genome
+    local threads="${!#}"               # Get last argument as threads
 
-    if ! command -v bcftools &> /dev/null; then
-        echo "bcftools is required. Please install it first."
+    echo "Generating VCF..."
+    echo "BAM files: ${bam_files[@]}"
+    echo "Genome: $genome"
+    echo "Threads: $threads"
+    
+    bcftools mpileup \
+        -Ou \
+        -f "$genome" \
+        --threads "$threads" \
+        "${bam_files[@]}" \
+        | bcftools call \
+        -mv \
+        -Oz \
+        --threads "$threads" \
+        -o all_samples.vcf
+}
+
+# Run and visualiz PCA using a custom Python script
+run_pca() {
+    local sample_vcf=$1
+
+    if ! command -v python &> /dev/null; then
+        echo "Python is required. Please install it first."
         exit 127
     fi
 
-    # Variant calling using bcftools
-    bcftools mpileup -Ou -f genome.fasta $bam_files \
-    | bcftools call -Ou -mv -o all_samples.vcf
+    echo "Running PCA on VCF file..."
+    python scripts/pca.py -vcf "$sample_vcf"
 }
 
 # Main workflow
@@ -197,17 +217,17 @@ main() {
     done
 
     # If config file is empty print usage information
-    if [ -z "$config_file" ]; then
+    if [ -z "${config_file}" ]; then
         show_help
         exit 1
     fi
     
     # Parse config file - this will assign the appropriate values to the variables used downstream
-    parse_yaml "$config_file"
+    parse_yaml "${config_file}"
 
     # Download and index genome
     if [ ! -f "genome.fasta" ]; then
-        download_genome "$GENOME_URL"
+        download_genome "${GENOME_URL}"
         build_genome_index
     fi
     
@@ -234,7 +254,7 @@ main() {
 
         # Run mapping and sorting unless the BAM file already exists
         if ! [[ -f "${sample}.sorted.bam" ]]; then
-            mapping_and_sorting "$sample" "$THREADS"
+            map_and_sort "$sample" "$THREADS"
         else
             echo "Error: ${sample}.sorted.bam is empty or was not created"
             exit 1
@@ -242,27 +262,40 @@ main() {
     done
 
     # Generate VCF if any BAM files were successfully created
-    for bam_files in $(ls -1 *.sorted.bam); do
-        echo "$bam_files"
+    bam_files=()
+    
+    for f in *.sorted.bam; do
+        if [[ -s "${f}" ]]; then
+            bam_files+=("$f")
+        else 
+            echo "Error: ${f} is empty or was not created".
+        fi
+    done
 
-        if [[ -s $bam_files ]]; then
-            generate_vcf "$bam_files" "$THREADS"
+    # Generate VCF if at least one BAM file(s) was successfully created
+    if [[ ! -f "all_samples.vcf" ]]; then
+        if [[ ${#bam_files[@]} -gt 0 ]]; then
+            generate_vcf "${bam_files[@]}" "genome.fasta" "$THREADS"
         else
             echo "No sorted BAM files were generated"
             exit 1
         fi
-    done
-
-    # Could also be done using find
-    # if [ $(find . -name "*.sorted.bam" | wc -l) -gt 0 ]; then
-    # bam_files = $(ls -1 *.sorted.bam)
-  
-    #  for ( bam_file in "${bam_files[@]})"; then
-    #       generate_vcf "${bam_files[@]}" "$THREADS"
-
-    if [[ -s "all_samples.vcf" ]]; then
-        echo "Workflow completed successfully!"   
+    else 
+        echo "VCF file already exists. Proceeding with PCA analysis."
     fi
+
+    if [[ ${#bam_files[@]} -gt 2 ]]; then
+        echo "These BAM files will be used for PCA: ${bam_files[@]}"
+
+        if [[ -f "all_samples.vcf" ]]; then
+            run_pca "all_samples.vcf"
+            echo "Workflow completed successfully!" 
+        fi
+    else
+        echo "Not enough input BAM files (<=2) for performing PCA."
+        exit 1
+    fi
+    
 }
 
 # Run the workflow
