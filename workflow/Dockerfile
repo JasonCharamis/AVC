@@ -21,7 +21,7 @@ RUN apt-get update && \
 
 # Create conda environment with defined dependencies
 RUN mkdir -p /conda-envs/dnaseq
-COPY envs/dnaseq.yaml /conda-envs/dnaseq/environment.yaml
+COPY envs/environment.yaml /conda-envs/dnaseq/environment.yaml
 
 # Install dependencies using mamba
 RUN mamba env create --prefix /conda-envs/dnaseq --file /conda-envs/dnaseq/environment.yaml && \

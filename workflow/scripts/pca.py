@@ -20,7 +20,7 @@ def parse_vcf(vcf_path):
             
             # Get sample IDs from header line
             if line.startswith('#CHROM'):
-                sample_ids = line.replace('.sorted.bam', '').strip().split('\t')[9:] # Clean sample IDs
+                sample_ids = line.replace('.markdup.bam', '').strip().split('\t')[9:] # Clean sample IDs
                 continue
             
             # Process variant lines
