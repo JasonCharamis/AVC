@@ -330,7 +330,7 @@ main() {
         esac
     done
 
-    if [[ -z "${config_file}" ]]; then
+    if [[ -z "${config_file}" ]] || [[ $# -gt 0 ]]; then
         show_help
         exit 1
     fi
@@ -372,7 +372,6 @@ main() {
 
         # Run FastQC if needed
         if [[ ! -f "data/${sample}_1_fastqc.html" ]]; then
-            echo "YES: FastQC"
             run_fastqc "$sample"
         fi
 
