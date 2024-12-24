@@ -14,9 +14,9 @@ show_help() {
 
 # Function to extract value for a given key in YAML format
 get_yaml_value() {
-    local key=$1
-    local default=$2
-    local yaml_file=$3
+    local yaml_file=$1
+    local key=$2
+    local default=$3
 
     # Isolate value per key and remove any leading and trailing whitespace
     local value=$(grep "^${key}:" "${yaml_file}" | cut -d':' -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -39,9 +39,9 @@ parse_yaml() {
         exit 1
     fi
        
-    export DATA_URL=$(get_yaml_value "data_url" "" "${yaml_file}")
-    export GENOME_URL=$(get_yaml_value "genome_url" "" "${yaml_file}")
-    export THREADS=$(get_yaml_value "threads" "1" "${yaml_file}")
+    export DATA_URL=$(get_yaml_value "${yaml_file}" "data_url" "")
+    export GENOME_URL=$(get_yaml_value "${yaml_file}" "genome_url" "")
+    export THREADS=$(get_yaml_value "${yaml_file}" "threads" "1")
 
     # Validate required URLs
     if [[ -z "${DATA_URL}" || -z "${GENOME_URL}" ]]; then
@@ -351,40 +351,44 @@ main() {
 
     # Check for input fastq files
     if ls data/*.fastq >/dev/null 2>&1; then
+        
         if [[ $(ls data/*.fastq | grep 'trim.sub' ) ]]; then
             rename_data "data"
         fi
 
         samples=($(ls data/*_1.fastq | sed 's/data\///g' | sed 's/_1.fastq//g'))
+
     else
         echo "No input fastq files found"
         exit 1
     fi
 
-    # Validate samples array
-    if [[ ${#samples[@]} -eq 0 ]]; then
+    # Run analysis if valid samples are provided
+    if [[ ${#samples[@]} -gt 0 ]]; then
+    
+        # Process each sample
+        for sample in "${samples[@]}"; do
+
+            # Run FastQC if needed
+            if [[ ! -f "data/${sample}_1_fastqc.html" ]]; then
+                run_fastqc "$sample"
+            fi
+
+            # Map reads if needed
+            if [[ ! -s "${sample}.raw.bam" ]]; then
+                map_reads "$sample" "$THREADS"
+            fi
+
+            # Process BAM if needed
+            if [[ ! -s "${sample}.markdup.bam" ]]; then
+                process_bam "$sample" "$THREADS"
+            fi
+        done
+
+    else
         echo "Error: No valid samples found"
         exit 1
     fi
-
-    # Process each sample
-    for sample in "${samples[@]}"; do
-
-        # Run FastQC if needed
-        if [[ ! -f "data/${sample}_1_fastqc.html" ]]; then
-            run_fastqc "$sample"
-        fi
-
-        # Map reads if needed
-        if [[ ! -s "${sample}.raw.bam" ]]; then
-            map_reads "$sample" "$THREADS"
-        fi
-
-        # Process BAM if needed
-        if [[ ! -s "${sample}.markdup.bam" ]]; then
-            process_bam "$sample" "$THREADS"
-        fi
-    done
 
     # Collect final BAM files
     bam_files=()
